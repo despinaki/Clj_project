@@ -18,7 +18,7 @@
 (def number-vector (shuffle (take 10 (random-sample 0.01 (range)))))
 ; find average delta 
 (defn average-delta 
-  "Return the average delta of all the numbers in a list"
+  "Return the average delta of all the numbers in a collection"
   [ordered-collection]
   (loop [i 0
          diff []]
@@ -28,3 +28,8 @@
       ; otherwise get the difference of two consecutive numbers in the collection and store it in diff vector, and increase i
       ; the order of the recur args matters
       (do (println diff) (recur (inc i) (conj diff (- (get ordered-collection (+ i 1)) (get ordered-collection i))))))))
+
+(deftest average-delta-test
+  (testing "average-delta function returns the average delta of all numbers in an ordered collection"
+    (is (= (average-delta [-3 5 1 9]) 4))
+    (is (= (average-delta [8 5 0 6]) -2/3))))
