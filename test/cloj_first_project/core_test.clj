@@ -33,3 +33,9 @@
   (testing "average-delta function returns the average delta of all numbers in an ordered collection"
     (is (= (average-delta [-3 5 1 9]) 4))
     (is (= (average-delta [8 5 0 6]) -2/3))))
+; OR 
+(deftest average-delta-test-parametrised
+  (testing "average-delta function returns the average delta of all numbers in an ordered collection"
+  (doseq [[input result] [[[-3 5 1 9] 4] [[8 5 0 6] -2/3]]]
+          (is (= (average-delta input) result)))
+    ))
