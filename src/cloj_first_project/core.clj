@@ -4,7 +4,8 @@
             [compojure.route :as route]
             [ring.middleware.cors :refer [wrap-cors]]
             [ring.middleware.json :refer [wrap-json-response wrap-json-body]]
-            [ring.util.response :refer [response]])
+            [ring.util.response :refer [response]]
+            [cloj-first-project.kafka :as kafka])
   (:gen-class))
 
 (defn average [request] 
@@ -20,6 +21,8 @@
   (GET "/" [] "<h1>Hello Despoina</h1>")
   (POST "/echo" request (do (println (:body request)) (response (:body request))))
   (POST "/average" request (response (average request)))
+  (POST "/kafka-average" request (kafka/write-kafka-message "localhost:9092" (str (average request)))
+    {:result "OK"})
   (route/not-found "<h1>Page not found</h1>"))
 
 (def app

@@ -4,7 +4,7 @@
               [environ.core :refer [env]])
     (:import [org.apache.kafka.clients.admin AdminClient AdminClientConfig NewTopic]
              org.apache.kafka.clients.consumer.KafkaConsumer
-             [org.apache.kafka.clients.producer KafkaProducer ProducerRecord]
+             [org.apache.kafka.clients.producer KafkaProducer ProducerRecord Callback]
              [org.apache.kafka.common.serialization StringDeserializer StringSerializer]
              (org.apache.kafka.common TopicPartition)
              (java.time Duration)))
@@ -47,19 +47,19 @@
 ;             (log/infof "Found Matching Key %s Value %s" (.key record) (.value record)))))
 ;       (persistent! found-records)))
   
-;   (defn build-consumer
-;     "Create the consumer instance to consume
-;   from the provided kafka topic name"
-;     [bootstrap-server]
-;     (let [consumer-props
-;           {"bootstrap.servers",  bootstrap-server
-;            "group.id",           "example"
-;            "key.deserializer",   StringDeserializer
-;            "value.deserializer", StringDeserializer
-;            "auto.offset.reset",  "earliest"
-;            "enable.auto.commit", "true"}]
-;       (KafkaConsumer. consumer-props)))
-  
+  (defn build-consumer
+    "Create the consumer instance to consume
+  from the provided kafka topic name"
+    [bootstrap-server]
+    (let [consumer-props
+          {"bootstrap.servers",  bootstrap-server
+           "group.id",           "example2"
+           "key.deserializer",   StringDeserializer
+           "value.deserializer", StringDeserializer
+           "auto.offset.reset",  "earliest"
+           "enable.auto.commit", "true"}]
+      (KafkaConsumer. consumer-props)))
+
 ;   (defn consumer-subscribe
 ;     [consumer topic]
 ;     (.subscribe consumer [topic]))
@@ -72,15 +72,12 @@
                           "bootstrap.servers" bootstrap-server}]
       (KafkaProducer. producer-props)))
   
-  (defn run-application
+  (defn write-kafka-message
     "Create the simple read and write topology with Kafka"
-    [bootstrap-server]
+    [bootstrap-server message] ;params here
     (let [
-        ; consumer-topic "example-consumer-topic"
           producer-topic "example-produced-topic"
           bootstrap-server (env :bootstrap-server bootstrap-server)
-        ;   replay-consumer (build-consumer bootstrap-server)
-        ;   consumer (build-consumer bootstrap-server)
           producer (build-producer bootstrap-server)]
       (log/infof "Creating the topics %s" [producer-topic #_consumer-topic])
       (create-topics! bootstrap-server [producer-topic #_consumer-topic] 1 1)
@@ -88,16 +85,33 @@
     ;              #_consumer-topic producer-topic)
     ;   (search-topic-by-key replay-consumer consumer-topic "1")
     ;   (consumer-subscribe consumer consumer-topic)
-    (.send producer (ProducerRecord. producer-topic "a" "hi this is a message to you."))
+    (.send producer (ProducerRecord. producer-topic "e" message) (reify Callback (onCompletion [_ metadata exception]
+                  (println metadata exception))))
+    (.close producer)
       #_(while true
         (let [records (.poll consumer (Duration/ofMillis 100))]
           (doseq [record records]
             (log/info "Sending on value" (str "Processed Value: " (.value record)))
             ))
         (.commitAsync consumer))))
+  
+  (defn read-kafka-message 
+    "Read messages from Kafka"
+    [bootstrap-server]
+    (let [
+          consumer-topic "example-produced-topic"
+          consumer (build-consumer bootstrap-server)]
+      (.subscribe consumer [consumer-topic])
+      (let [records (.poll consumer (Duration/ofMillis 1000))] ;can avoid nested let blocks by using _ (by convention) before a function that doesn't return a value
+        (println (.count records))  
+        (doseq [record records]  ; a more efficient way woud be to use an infinite loop, so that we dont generate the same consumer instance multiple times
+          (println "Sending on value" (str "Processed Value: " (.value record)))
+          ))
+      (.commitAsync consumer)
+      (.close consumer)))
 
   
   (defn -main
     [& args]
     (.addShutdownHook (Runtime/getRuntime) (Thread. #(log/info "Shutting down")))
-    (run-application "192.168.0.3:9092"))
+    (write-kafka-message "localhost:9092"))
