@@ -1,36 +1,12 @@
 # cloj-first-project
 
-FIXME: description
+##Purpose
 
-## Installation
-
-Download from http://example.com/FIXME.
-
-## Usage
-
-FIXME: explanation
-
-    $ java -jar cloj-first-project-0.1.0-standalone.jar [args]
-
-## Options
-
-FIXME: listing of options this app accepts.
-
-## Examples
-
-...
-
-### Bugs
-
-...
-
-### Any Other Sections
-### That You Think
-### Might be Useful
+The aim of my first Clojure project is to build a Clojure service that can process batches of meter readings, calculate the average reading delta for that time period and publish the data onto a Kafka topic.
 
 ## License
 
-Copyright © 2020 FIXME
+Copyright © 2020 
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
