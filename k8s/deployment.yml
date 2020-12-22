@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: despoina-project
+  labels:
+    app: clojure-first-project
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: clojure-first-project
+  template:
+    metadata:
+      labels:
+        app: clojure-first-project
+    spec:
+      containers:
+      - name: clojure-first-project
+        image: despinaki95/clojure-project
+        ports:
+        - containerPort: 3001
